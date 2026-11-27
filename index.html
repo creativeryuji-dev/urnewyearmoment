@@ -15,7 +15,7 @@ button:disabled{opacity:.45;cursor:default}
 #cam{position:fixed;inset:0;z-index:50;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;padding:14px 16px calc(18px + env(safe-area-inset-bottom))}#cam[hidden]{display:none}
 .cbar{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center}.cbar b{font:600 18px Fredoka,sans-serif}.cbar button{padding:8px 14px}
 #cvw{--ar:1.2;position:relative;margin:auto 0;width:min(92vw,calc(52vh * var(--ar)),480px);aspect-ratio:var(--ar);overflow:hidden;background:#000;outline:4px solid var(--o);outline-offset:3px}
-#cvw.rrect{border-radius:15%/18%}#cvw.ell{border-radius:50%}
+#cvw.rrect{border-radius:21%/25%}#cvw.sq{border-radius:0}
 #vid{width:100%;height:100%;object-fit:cover;display:block}#vid.mir{transform:scaleX(-1)}
 #cnt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 130px Fredoka,sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.65)}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .4s}
@@ -23,15 +23,15 @@ button:disabled{opacity:.45;cursor:default}
 .ccr{width:100%;max-width:480px}</style></head><body><div class="w">
 <header><img src="logos/soora-cream.png" alt="Soora Sushi Club"></header>
 <h1>Happy New Year <b>2027</b></h1><p>Make your New Year photo strip with Soora. Your photos are never uploaded to a server, everything stays on your device.</p>
-<canvas id="cv" width="1200" height="1800"></canvas><p class="mu">Tap a frame to take a photo. Drag a photo to adjust its position.</p>
-<div class="card"><h2>1. Choose your strip</h2><div class="row lay" id="lay"></div><div class="row" style="margin-top:10px;align-items:center"><select id="cp" onchange="draw()"><option value="2">2 strips (ready to print 4×6)</option><option value="1">1 strip</option></select><label style="display:flex;align-items:center;margin:0;color:var(--c);font-size:14px"><input type="checkbox" id="bw" onchange="draw()">Black &amp; white</label></div></div>
+<canvas id="cv" width="1200" height="1800"></canvas><p class="mu">Tap a frame to take a photo. Drag a photo to adjust its position. Each photo appears on both strips.</p>
+<div class="card"><h2>1. Choose your strip</h2><div class="row lay" id="lay"></div><div class="row" style="margin-top:10px;align-items:center"><label style="display:flex;align-items:center;margin:0;color:var(--c);font-size:14px"><input type="checkbox" id="bw" onchange="draw()">Black &amp; white</label></div></div>
 <div class="card"><h2>2. Photos</h2><button class="p" id="bCam" style="width:100%">📷 Start camera session (3 photos)</button><div class="row" style="margin-top:8px"><button id="bRe">Retake this frame</button><button id="bAdd">Upload</button><button id="bRm">Remove</button></div>
 <label>Zoom selected photo</label><input type="range" id="zm" min="1" max="3" step="0.05" value="1"><small id="st"></small><input type="file" id="fi" accept="image/*" multiple hidden></div>
 <div class="card"><h2>3. Wish &amp; name</h2><label>Name</label><input id="nm" maxlength="24" placeholder="Your name">
 <label>Your New Year wish</label><textarea id="ws" rows="3" maxlength="120" placeholder="May the new year be full of laughter, luck, and sushi!"></textarea><div class="row" id="ch" style="margin-top:8px"></div>
 <label>Outlet (optional)</label><select id="ol" onchange="draw()"><option value="">-</option><option>Fujiyama</option><option>Tugu</option><option>Bekasi</option><option>Surabaya</option></select>
 <label style="display:flex;align-items:flex-start;margin-top:12px"><input type="checkbox" id="op">Allow Soora to save my name &amp; wish for campaigns (photos are never saved).</label></div>
-<div class="row" style="margin-top:14px"><button class="p" id="bDl">⬇ Download PNG</button><button id="bSh">Share</button></div></div>
+<div class="row" style="margin-top:14px"><button class="p" id="bDl">⬇ Print 4×6</button><button id="bSt">⬇ Story</button><button id="bSh">Share</button></div></div>
 <div id="cam" hidden>
   <div class="cbar"><b id="ctitle">Camera</b><button id="cClose">Close</button></div>
   <div id="cvw"><video id="vid" playsinline muted autoplay></video><div id="cnt"></div><div id="flash"></div></div>
@@ -40,54 +40,39 @@ button:disabled{opacity:.45;cursor:default}
   <button class="p ccr" id="cGo" disabled>Start</button>
 </div>
 <script>
-// ---------- Konfigurasi ----------
-const W = 1200, H = 1800;                 // 4x6 inch canvas @300dpi
-const SH = 1500, Y0 = 40, GAP = 30;       // strip height, top offset, gap between strips
-const BASE_W = 471, BASE_H = 1417;        // base size of the frame files (hole coordinates are based on this)
-const K = SH / BASE_H;                    // strip scale relative to the frame file
-const ORANGE = '#EC6A2D';
-const SHEET_BG = '#414128';   // brand olive (same as the dark band in the frame)
-const CAP_TEXT = '#FFEBB9', CAP_MUTED = '#C9B98F';
+// ---------- Config ----------
+const W = 1080, H = 1920;                 // frame files are 1080x1920 (story size)
+const PANEL = { x: 94, y: 289, w: 892, h: 1342 };   // the 2-strip panel inside the frame = 4x6 print area
+const PW = 1200, PH = 1800;               // print output 4x6 inch @300dpi
+const ORANGE = '#EC6A2D', OLIVE = '#414128', CREAM = '#FFEBB9';
 
-// Photo holes for each frame: [x, y, width, height] in BASE pixels (471x1417).
-// crop = left columns to drop (the cream frame has a 3px transparent edge on the left).
-// If the frame is replaced with a higher resolution version of the same ratio, these numbers still apply.
+// Each frame has 2 strips side by side, 3 photo holes each (transparent in the PNG).
+// cols = x of the left/right hole, ys = y of the 3 rows, w/h = hole size (in 1080x1920 pixels).
+// The same 3 photos are shown on both strips. If you replace a frame with a 2x version of the same design, these numbers still apply.
 const FRAMES = {
-  cream:  { label: 'Cream · 3 photos',  src: 'assets/frame-cream.png',  crop: 3, shape: 'rrect', r: 58, hl: ORANGE,
-            slots: [[47,139,382,317],[47,484,382,317],[47,829,382,317]] },
-  orange: { label: 'Orange · 3 photos', src: 'assets/frame-orange.png', crop: 0, shape: 'ellipse', r: 0, hl: '#FFFFFF',
-            slots: [[31,144,409,275],[31,458,409,275],[31,786,409,275]] }
+  cream:  { label: 'Happy New Year', src: 'assets/frame-cream.png',  shape: 'rrect', r: 75, hl: ORANGE,
+            cols: [136, 582], ys: [421, 748, 1075], w: 361, h: 298, cap: OLIVE, stroke: null, nameCol: ORANGE },
+  orange: { label: 'Flight ticket',  src: 'assets/frame-orange.png', shape: 'rect',  r: 0,  hl: ORANGE,
+            cols: [117, 563], ys: [509, 827, 1145], w: 398, h: 300, cap: CREAM, stroke: OLIVE, nameCol: CREAM }
 };
 const WISH = ['Here\'s to 2027 full of laughter and sushi!','More gatherings, more stories.','Health, happiness, and good fortune.','Cheers to new moments, new bites!'];
 const DEFAULT_WISH = 'May the new year be full of laughter, luck, and sushi!';
 
 // ---------- State ----------
-const $ = id => document.getElementById(id), cv = $('cv'), X = cv.getContext('2d');
+const $ = id => document.getElementById(id), cv = $('cv');
+let X = cv.getContext('2d');
 let lay = 'cream', slots = [null, null, null], sel = 0, FI = {}, drag = null;
 
 const loadImg = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
-const stripCount = () => $('cp').value === '1' ? 1 : 2;
-const stripW = () => (BASE_W - FRAMES[lay].crop) * K;
-function stripXs() {
-  const w = stripW();
-  return stripCount() === 1 ? [W / 2 - w / 2] : [W / 2 - GAP / 2 - w, W / 2 + GAP / 2];
-}
-// Rectangle of each photo hole (canvas coordinates) for the strip at x0
-function slotRects(x0) {
-  const f = FRAMES[lay];
-  return f.slots.map(([sx, sy, sw, sh]) => [x0 + (sx - f.crop) * K, Y0 + sy * K, sw * K, sh * K]);
-}
+// the 2 holes (left strip, right strip) of row i
+const holes = i => { const f = FRAMES[lay]; return f.cols.map(x => [x, f.ys[i], f.w, f.h]); };
 
 // ---------- Drawing ----------
 function rr(x, y, w, h, r) {
   X.beginPath(); X.moveTo(x + r, y); X.arcTo(x + w, y, x + w, y + h, r); X.arcTo(x + w, y + h, x, y + h, r);
   X.arcTo(x, y + h, x, y, r); X.arcTo(x, y, x + w, y, r); X.closePath();
 }
-function holePath(r) {
-  const f = FRAMES[lay], [x, y, w, h] = r;
-  if (f.shape === 'ellipse') { X.beginPath(); X.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); }
-  else rr(x, y, w, h, f.r * K);
-}
+function holePath(r) { const [x, y, w, h] = r; rr(x, y, w, h, FRAMES[lay].r); }
 function star(cx, cy, r) {
   X.save(); X.strokeStyle = ORANGE; X.lineWidth = r / 4; X.lineCap = 'round';
   for (let k = 0; k < 4; k++) {
@@ -96,7 +81,11 @@ function star(cx, cy, r) {
   }
   X.restore();
 }
-function text(t, x, y, font, color) { X.font = font; X.fillStyle = color; X.textAlign = 'center'; X.fillText(t, x, y); }
+function text(t, x, y, font, color, stroke) {
+  X.font = font; X.textAlign = 'center';
+  if (stroke) { X.lineJoin = 'round'; X.lineWidth = 7; X.strokeStyle = stroke; X.strokeText(t, x, y); }
+  X.fillStyle = color; X.fillText(t, x, y);
+}
 function wrap(t, maxW) {
   const lines = []; let cur = '';
   for (const s of t.split(/\s+/)) {
@@ -107,7 +96,7 @@ function wrap(t, maxW) {
   return lines;
 }
 
-function drawCell(r, s, exp) {
+function drawCell(r, s, mode) {
   const [x, y, w, h] = r;
   X.save(); X.beginPath(); X.rect(x, y, w, h); X.clip();
   if (s) {
@@ -118,45 +107,53 @@ function drawCell(r, s, exp) {
       X.globalCompositeOperation = 'source-over';
     }
   } else {
-    X.fillStyle = exp ? '#EFE8DC' : '#FFFFFF'; X.fillRect(x, y, w, h);
-    star(x + w / 2, y + h / 2 - (exp ? 0 : 14), Math.min(w, h) / 9);
-    if (!exp) text('Tap to take a photo', x + w / 2, y + h / 2 + 52, '500 24px "DM Sans",sans-serif', '#8f8272');
+    X.fillStyle = mode === 'preview' ? '#FFFFFF' : '#EFE8DC'; X.fillRect(x, y, w, h);
+    star(x + w / 2, y + h / 2 - (mode === 'preview' ? 12 : 0), Math.min(w, h) / 9);
+    if (mode === 'preview') text('Tap to take a photo', x + w / 2, y + h / 2 + 46, '500 20px "DM Sans",sans-serif', '#8f8272');
   }
   X.restore();
 }
 
-function drawCaption(cx, w) {
-  const nm = $('nm').value.trim().slice(0, 24), outlet = $('ol').value;
-  const ws = ($('ws').value.trim() || DEFAULT_WISH).slice(0, 120);
-  const top = Y0 + SH + 22;
-  let fs = 26, lines;
-  for (; fs >= 18; fs--) { X.font = 'italic 500 ' + fs + 'px "DM Sans",sans-serif'; lines = wrap(ws, w - 30); if (lines.length <= 4) break; }
-  const lh = Math.round(fs * 1.28); let y = top + fs;
-  lines.slice(0, 4).forEach(t => { text(t, cx, y, 'italic 500 ' + fs + 'px "DM Sans",sans-serif', CAP_TEXT); y += lh; });
-  y += 14;
-  if (nm) { text(nm, cx, y, '700 32px Fredoka,sans-serif', ORANGE); y += 30; }
-  if (outlet) text('Soora Sushi Club ' + outlet, cx, y, '500 19px "DM Sans",sans-serif', CAP_MUTED);
+// name printed next to the "NAME" label on the ticket stub (right strip, flight frame only)
+function ticketName() {
+  const nm = $('nm').value.trim().toUpperCase(); if (!nm || lay !== 'orange') return;
+  let fs = 10; X.save(); X.textAlign = 'left'; X.fillStyle = OLIVE;
+  for (; fs >= 6; fs--) { X.font = '700 ' + fs + 'px "Courier New",monospace'; if (X.measureText(nm).width <= 132) break; }
+  X.fillText(nm, 793, 341); X.restore();
 }
 
-function draw(exp) {
-  const f = FRAMES[lay], fimg = FI[lay], w = stripW();
-  X.clearRect(0, 0, W, H); X.fillStyle = SHEET_BG; X.fillRect(0, 0, W, H);
-  stripXs().forEach(x0 => {
-    const rects = slotRects(x0);
-    rects.forEach((r, i) => drawCell(r, slots[i], exp));
-    if (fimg) {
-      const c = f.crop * fimg.width / BASE_W;
-      X.drawImage(fimg, c, 0, fimg.width - c, fimg.height, x0, Y0, w, SH);
-    }
-    if (!exp) {
-      X.save(); holePath(rects[sel]); X.lineWidth = 7; X.strokeStyle = f.hl; X.stroke(); X.restore();
-    }
-    drawCaption(x0 + w / 2, w);
-  });
+// wish + name under the panel (story / preview only, there is no room inside the 4x6 print)
+function drawCaption() {
+  const f = FRAMES[lay], nm = $('nm').value.trim().slice(0, 24), outlet = $('ol').value;
+  const ws = ($('ws').value.trim() || DEFAULT_WISH).slice(0, 120), cx = W / 2;
+  let fs = 28, lines;
+  for (; fs >= 16; fs--) { X.font = 'italic 500 ' + fs + 'px "DM Sans",sans-serif'; lines = wrap(ws, 860); if (lines.length <= 2) break; }
+  const lh = Math.round(fs * 1.22); let y = 1822;
+  lines.slice(0, 2).forEach(t => { text(t, cx, y, 'italic 500 ' + fs + 'px "DM Sans",sans-serif', f.cap, f.stroke); y += lh; });
+  const who = [nm, outlet ? 'Soora Sushi Club ' + outlet : ''].filter(Boolean).join(' · ');
+  if (who) text(who, cx, y + 12, '600 26px Fredoka,sans-serif', f.nameCol, f.stroke);
 }
+
+// mode: 'preview' (on screen), 'story' (1080x1920 export), 'print' (4x6 export, called with a transform + clip)
+function render(ctx, mode) {
+  const prev = X; X = ctx;
+  try {
+    const f = FRAMES[lay], fimg = FI[lay];
+    X.clearRect(0, 0, W, H); X.fillStyle = lay === 'cream' ? '#FFEBB9' : ORANGE; X.fillRect(0, 0, W, H);
+    for (let i = 0; i < 3; i++) holes(i).forEach(r => drawCell(r, slots[i], mode));
+    if (fimg) X.drawImage(fimg, 0, 0, W, H);
+    ticketName();
+    if (mode === 'preview') {
+      X.save(); X.lineWidth = 6; X.strokeStyle = f.hl;
+      holes(sel).forEach(r => { holePath(r); X.stroke(); }); X.restore();
+    }
+    if (mode !== 'print') drawCaption();
+  } finally { X = prev; }
+}
+function draw() { render(cv.getContext('2d'), 'preview'); }
 
 // ---------- UI ----------
-function setLay(k) { lay = k; sel = Math.min(sel, 2); draw(); ui(); }
+function setLay(k) { lay = k; draw(); ui(); }
 function ui() {
   $('lay').innerHTML = Object.keys(FRAMES).map(k => `<button class="${k === lay ? 'on' : ''}" onclick="setLay('${k}')">${FRAMES[k].label}</button>`).join('');
   const s = slots[sel];
@@ -165,10 +162,7 @@ function ui() {
 }
 function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
 function hit(px, py) {
-  for (const x0 of stripXs()) {
-    const i = slotRects(x0).findIndex(r => px >= r[0] && px <= r[0] + r[2] && py >= r[1] && py <= r[1] + r[3]);
-    if (i >= 0) return i;
-  }
+  for (let i = 0; i < 3; i++) if (holes(i).some(r => px >= r[0] && px <= r[0] + r[2] && py >= r[1] && py <= r[1] + r[3])) return i;
   return -1;
 }
 cv.onpointerdown = e => {
@@ -179,7 +173,7 @@ cv.onpointerdown = e => {
 };
 cv.onpointermove = e => {
   if (!drag) return; const s = slots[drag.i]; if (!s) return;
-  const [px, py] = pos(e), [, , w, h] = slotRects(0)[drag.i];
+  const [px, py] = pos(e), [, , w, h] = holes(drag.i)[0];
   const k = Math.max(w / s.img.width, h / s.img.height) * s.z, ex = (s.img.width * k - w) / 2, ey = (s.img.height * k - h) / 2;
   drag.m = Math.max(drag.m, Math.hypot(px - drag.px, py - drag.py));
   if (ex > 1) s.ox = Math.max(-1, Math.min(1, drag.ox + (px - drag.px) / ex));
@@ -233,9 +227,9 @@ async function startStream() {
 
 function openCam(targets) {
   camTargets = targets; sess++;
-  const [, , w, h] = slotRects(0)[0];
+  const { w, h, shape } = FRAMES[lay];
   $('cvw').style.setProperty('--ar', (w / h).toFixed(3));
-  $('cvw').className = FRAMES[lay].shape === 'ellipse' ? 'ell' : 'rrect';
+  $('cvw').className = shape === 'rect' ? 'sq' : 'rrect';
   $('ctitle').textContent = targets.length > 1 ? 'Camera session' : 'Photo for frame ' + (targets[0] + 1);
   $('cGo').textContent = targets.length > 1 ? 'Start session (' + targets.length + ' photos)' : 'Take photo';
   $('cnt').textContent = ''; $('cam').hidden = false; document.body.style.overflow = 'hidden';
@@ -274,22 +268,33 @@ $('cFlip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'
 window.addEventListener('pagehide', stopStream);
 
 // ---------- Export ----------
-async function png() {
-  if (!slots.some(Boolean)) { alert('Please add at least 1 photo first.'); return null; }
-  draw(true);
-  const b = await new Promise(r => cv.toBlob(r, 'image/png'));
-  draw(); saveWish(); return b;
+function makeCanvas(kind) {
+  const c = document.createElement('canvas'), g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  if (kind === 'story') { c.width = W; c.height = H; render(g, 'story'); }
+  else {   // print: crop the 2-strip panel and scale it to 1200x1800
+    c.width = PW; c.height = PH;
+    const sx = PW / PANEL.w, sy = PH / PANEL.h;
+    g.setTransform(sx, 0, 0, sy, -PANEL.x * sx, -PANEL.y * sy);
+    g.beginPath(); g.rect(PANEL.x, PANEL.y, PANEL.w, PANEL.h); g.clip();
+    render(g, 'print');
+  }
+  return c;
 }
-const fname = () => 'soora-newyear-' + (($('nm').value.trim().replace(/[^\w]+/g, '-').toLowerCase()) || 'photobooth') + '.png';
-$('bDl').onclick = async () => {
-  const b = await png(); if (!b) return;
-  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(); a.click();
-};
+async function png(kind) {
+  if (!slots.some(Boolean)) { alert('Please add at least 1 photo first.'); return null; }
+  const b = await new Promise(r => makeCanvas(kind).toBlob(r, 'image/png'));
+  saveWish(); return b;
+}
+const fname = kind => 'soora-newyear-' + (($('nm').value.trim().replace(/[^\w]+/g, '-').toLowerCase()) || 'photobooth') + (kind === 'story' ? '-story' : '-print') + '.png';
+const save = (b, kind) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(kind); a.click(); };
+$('bDl').onclick = async () => { const b = await png('print'); if (b) save(b, 'print'); };
+$('bSt').onclick = async () => { const b = await png('story'); if (b) save(b, 'story'); };
 $('bSh').onclick = async () => {
-  const b = await png(); if (!b) return;
-  const f = new File([b], fname(), { type: 'image/png' });
+  const b = await png('story'); if (!b) return;
+  const f = new File([b], fname('story'), { type: 'image/png' });
   if (navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: 'Soora New Year 2027' }).catch(() => {});
-  else { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(); a.click(); }
+  else save(b, 'story');
 };
 
 // ---------- Save wish (optional, requires consent checkbox) ----------

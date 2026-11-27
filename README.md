@@ -5,7 +5,7 @@ Photos are NEVER uploaded. Only the name and wish (optional, with a consent chec
 
 ## Structure
 - `index.html`: the whole app (HTML, CSS, JS).
-- `assets/frame-cream.png`, `assets/frame-orange.png`: strips from the design team (transparent PNG 471x1417, photo holes are transparent).
+- `assets/frame-cream.png` (Happy New Year) and `assets/frame-orange.png` (flight ticket): full 1080x1920 designs, each with 2 strips x 3 transparent photo holes. The 892x1342 panel inside is the 4x6 print area.
 - `logos/`: logos for the page header.
 - `firebase-config.js`, `firestore.rules`, `firebase.json`, `netlify.toml`: configuration.
 
@@ -15,12 +15,12 @@ Photos are NEVER uploaded. Only the name and wish (optional, with a consent chec
 The camera only works over HTTPS (Netlify is HTTPS) or localhost. Inside in-app browsers (Instagram, WhatsApp) the camera is often blocked, ask customers to open the link in Chrome or Safari.
 
 ## How the frames work
-Customer photos are drawn behind the frame, so the hole shape (rounded square / oval) follows the design automatically.
-The customer's wish and name are placed under each strip (each cut strip has its own caption).
+Customer photos are drawn behind the frame, so the hole shape follows the design. The same 3 photos fill both strips.
+Exports: **Print 4x6** crops the panel to 1200x1800 (the name goes on the ticket stub for the flight frame). **Story** exports the full 1080x1920 design with the wish and name under the panel.
 
 ## Replace or add a frame
-1. Put the new PNG in `assets/` (ratio 471:1417, transparent photo holes, higher resolution is fine).
-2. In `index.html`, in `FRAMES` at the top of the script: add a new entry (`src`, shape `rrect` or `ellipse`, and `slots` = [x, y, width, height] of each hole in 471x1417 pixels).
+1. Put the new 1080x1920 PNG in `assets/` (transparent holes, same panel position, or update `PANEL`).
+2. In `index.html`, in `FRAMES` at the top of the script: add an entry (`src`, `shape` rrect/rect, `r` corner radius, `cols` = x of left/right hole, `ys` = y of the 3 rows, `w`/`h` hole size).
 3. Add the new frame name to the `layout in [...]` list in `firestore.rules`.
 
 ## Setup
