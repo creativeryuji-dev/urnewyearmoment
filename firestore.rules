@@ -1,12 +1,12 @@
 rules_version = '2';
 service cloud.firestore { match /databases/{database}/documents {
-  // Pengunjung hanya boleh MENULIS wish (nama + wish pendek). Tidak ada yang bisa membaca dari web.
-  // Data dilihat/diexport lewat Firebase Console.
+  // Visitors may only WRITE a wish (name + short wish). Nobody can read from the web.
+  // View or export data in the Firebase Console.
   match /wishes/{id} {
     allow create: if request.resource.data.keys().hasOnly(['name','wish','layout','outlet','ts'])
       && request.resource.data.name is string && request.resource.data.name.size() <= 24
       && request.resource.data.wish is string && request.resource.data.wish.size() <= 120
-      && request.resource.data.layout in ['ticket','orange']
+      && request.resource.data.layout in ['cream','orange']
       && request.resource.data.outlet is string && request.resource.data.outlet.size() <= 20
       && request.resource.data.ts == request.time;
     allow read, update, delete: if false;

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soora New Year Photobox</title>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soora New Year Photobox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,500&display=swap" rel="stylesheet">
 <style>:root{--o:#EC6A2D;--c:#F6EBDD;--bg:#0a0a0a;--sf:#17140f;--ln:#2c2620}*{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--c);font:15px/1.45 'DM Sans',system-ui,sans-serif}.w{max-width:480px;margin:0 auto;padding:18px 16px 40px}
@@ -10,67 +10,306 @@ label{display:block;font-size:12px;color:#b9aa98;margin:10px 0 4px}input,textare
 input[type=range]{padding:0;accent-color:var(--o)}input[type=checkbox]{width:auto;margin-right:8px}
 button{font:600 15px Fredoka,sans-serif;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:#2a241c;color:var(--c)}button.p{background:var(--o);color:#fff}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.lay button.on{background:var(--c);color:#111}
-.ch{font:500 12px 'DM Sans',sans-serif;padding:6px 10px;border-radius:99px;background:#241e16;border:1px solid var(--ln);flex:0 0 auto}small,.mu{color:#8f8272;font-size:12px}</style></head><body><div class="w">
+.ch{font:500 12px 'DM Sans',sans-serif;padding:6px 10px;border-radius:99px;background:#241e16;border:1px solid var(--ln);flex:0 0 auto}small,.mu{color:#8f8272;font-size:12px}
+button:disabled{opacity:.45;cursor:default}
+#cam{position:fixed;inset:0;z-index:50;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;padding:14px 16px calc(18px + env(safe-area-inset-bottom))}#cam[hidden]{display:none}
+.cbar{width:100%;max-width:480px;display:flex;justify-content:space-between;align-items:center}.cbar b{font:600 18px Fredoka,sans-serif}.cbar button{padding:8px 14px}
+#cvw{--ar:1.2;position:relative;margin:auto 0;width:min(92vw,calc(52vh * var(--ar)),480px);aspect-ratio:var(--ar);overflow:hidden;background:#000;outline:4px solid var(--o);outline-offset:3px}
+#cvw.rrect{border-radius:15%/18%}#cvw.ell{border-radius:50%}
+#vid{width:100%;height:100%;object-fit:cover;display:block}#vid.mir{transform:scaleX(-1)}
+#cnt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 130px Fredoka,sans-serif;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.65)}
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .4s}
+#cmsg{text-align:center;color:#cdbfae;min-height:42px;margin:12px 0 8px;max-width:480px;font-size:14px}
+.ccr{width:100%;max-width:480px}</style></head><body><div class="w">
 <header><img src="logos/soora-cream.png" alt="Soora Sushi Club"></header>
-<h1>Happy New Year <b>2027</b></h1><p>Bikin strip photobooth tahun barumu bareng Soora. Fotomu tidak diunggah ke server, semuanya diproses di perangkatmu.</p>
-<canvas id="cv" width="1200" height="1800"></canvas><p class="mu">Ketuk kotak untuk menambah foto. Geser foto untuk mengatur posisi.</p>
-<div class="card"><h2>1. Pilih gaya strip</h2><div class="row lay" id="lay"></div><div class="row" style="margin-top:10px;align-items:center"><select id="cp" onchange="draw()"><option value="2">2 lembar (siap cetak 4×6)</option><option value="1">1 lembar</option></select><label style="display:flex;align-items:center;margin:0;color:var(--c);font-size:14px"><input type="checkbox" id="bw" onchange="draw()">Hitam-putih</label></div></div>
-<div class="card"><h2>2. Foto</h2><div class="row"><button class="p" id="bAdd">📷 Tambah / ganti foto</button><button id="bRm">Hapus foto</button></div>
-<label>Zoom foto terpilih</label><input type="range" id="zm" min="1" max="3" step="0.05" value="1"><small id="st"></small><input type="file" id="fi" accept="image/*" multiple hidden></div>
-<div class="card"><h2>3. Wish &amp; nama</h2><label>Nama</label><input id="nm" maxlength="24" placeholder="Namamu">
-<label>Wish tahun baru</label><textarea id="ws" rows="3" maxlength="120" placeholder="Semoga tahun baru penuh tawa, rezeki, dan sushi!"></textarea><div class="row" id="ch" style="margin-top:8px"></div>
-<label>Outlet (opsional)</label><select id="ol" onchange="draw()"><option value="">-</option><option>Fujiyama</option><option>Tugu</option><option>Bekasi</option><option>Surabaya</option></select>
-<label style="display:flex;align-items:flex-start;margin-top:12px"><input type="checkbox" id="op">Izinkan Soora menyimpan nama &amp; wish-ku untuk campaign (foto tidak ikut disimpan).</label></div>
-<div class="row" style="margin-top:14px"><button class="p" id="bDl">⬇ Download PNG</button><button id="bSh">Bagikan</button></div></div>
+<h1>Happy New Year <b>2027</b></h1><p>Make your New Year photo strip with Soora. Your photos are never uploaded to a server, everything stays on your device.</p>
+<canvas id="cv" width="1200" height="1800"></canvas><p class="mu">Tap a frame to take a photo. Drag a photo to adjust its position.</p>
+<div class="card"><h2>1. Choose your strip</h2><div class="row lay" id="lay"></div><div class="row" style="margin-top:10px;align-items:center"><select id="cp" onchange="draw()"><option value="2">2 strips (ready to print 4×6)</option><option value="1">1 strip</option></select><label style="display:flex;align-items:center;margin:0;color:var(--c);font-size:14px"><input type="checkbox" id="bw" onchange="draw()">Black &amp; white</label></div></div>
+<div class="card"><h2>2. Photos</h2><button class="p" id="bCam" style="width:100%">📷 Start camera session (3 photos)</button><div class="row" style="margin-top:8px"><button id="bRe">Retake this frame</button><button id="bAdd">Upload</button><button id="bRm">Remove</button></div>
+<label>Zoom selected photo</label><input type="range" id="zm" min="1" max="3" step="0.05" value="1"><small id="st"></small><input type="file" id="fi" accept="image/*" multiple hidden></div>
+<div class="card"><h2>3. Wish &amp; name</h2><label>Name</label><input id="nm" maxlength="24" placeholder="Your name">
+<label>Your New Year wish</label><textarea id="ws" rows="3" maxlength="120" placeholder="May the new year be full of laughter, luck, and sushi!"></textarea><div class="row" id="ch" style="margin-top:8px"></div>
+<label>Outlet (optional)</label><select id="ol" onchange="draw()"><option value="">-</option><option>Fujiyama</option><option>Tugu</option><option>Bekasi</option><option>Surabaya</option></select>
+<label style="display:flex;align-items:flex-start;margin-top:12px"><input type="checkbox" id="op">Allow Soora to save my name &amp; wish for campaigns (photos are never saved).</label></div>
+<div class="row" style="margin-top:14px"><button class="p" id="bDl">⬇ Download PNG</button><button id="bSh">Share</button></div></div>
+<div id="cam" hidden>
+  <div class="cbar"><b id="ctitle">Camera</b><button id="cClose">Close</button></div>
+  <div id="cvw"><video id="vid" playsinline muted autoplay></video><div id="cnt"></div><div id="flash"></div></div>
+  <div id="cmsg"></div>
+  <div class="row ccr" style="margin-bottom:10px"><button class="ch" id="cMir">Mirror: on</button><button class="ch" id="cFlip">Switch camera</button></div>
+  <button class="p ccr" id="cGo" disabled>Start</button>
+</div>
 <script>
-const W=1200,H=1800,O='#EC6A2D',C='#F6EBDD',$=id=>document.getElementById(id),cv=$('cv'),X=cv.getContext('2d');
-const LAY={ticket:['Ticket · 4 foto',4],orange:['Orange · 3 foto',3]},WISH=['Semoga 2027 penuh tawa dan sushi!','Makin sering kumpul, makin banyak cerita.','Sehat, bahagia, rezeki lancar.','Cheers to new moments, new bites!'];
-let lay='ticket',slots=[],sel=0,LG=null,LC=null,OV=null,dr=null;const SY=60,SW=540,SH=1680;
-const img=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s}),offs=()=>$('cp').value=='1'?[330]:[40,620];
-function rects(off){const o=lay=='orange',n=LAY[lay][1],pw=o?428:476,ph=o?420:290;return[...Array(n)].map((_,i)=>[off+(o?56:32),SY+(o?120:232)+i*(ph+16),pw,ph])}
-function setLay(k,u){lay=k;const n=LAY[k][1];slots.length=n;for(let i=0;i<n;i++)slots[i]=slots[i]||null;sel=Math.min(sel,n-1);if(u)$('bw').checked=k=='orange';draw();ui()}
-function star(cx,cy,r){X.save();X.strokeStyle=O;X.lineWidth=r/4;X.lineCap='round';for(let k=0;k<4;k++){const a=k*Math.PI/4,dx=Math.cos(a)*r,dy=Math.sin(a)*r;X.beginPath();X.moveTo(cx-dx,cy-dy);X.lineTo(cx+dx,cy+dy);X.stroke()}X.restore()}
-function rr(x,y,w,h,r){X.beginPath();X.moveTo(x+r,y);X.arcTo(x+w,y,x+w,y+h,r);X.arcTo(x+w,y+h,x,y+h,r);X.arcTo(x,y+h,x,y,r);X.arcTo(x,y,x+w,y,r);X.closePath()}
-function tk(x,y,w,h,r){const P=Math.PI;X.beginPath();X.moveTo(x+r,y);X.lineTo(x+w-r,y);X.arc(x+w,y,r,P,P/2,true);X.lineTo(x+w,y+h-r);X.arc(x+w,y+h,r,-P/2,P,true);X.lineTo(x+r,y+h);X.arc(x,y+h,r,0,-P/2,true);X.lineTo(x,y+r);X.arc(x,y,r,P/2,0,true);X.closePath()}
-const T=(t,x,y,f,c)=>{X.font=f;X.fillStyle=c;X.textAlign='center';X.fillText(t,x,y)};
-function wrap(t,mw){const l=[];let c='';for(const s of t.split(/\s+/)){const n=c?c+' '+s:s;if(X.measureText(n).width>mw&&c){l.push(c);c=s}else c=n}if(c)l.push(c);return l}
-function cell(r,s,i,exp,o){const[x,y,w,h]=r;X.save();X.beginPath();X.rect(x,y,w,h);X.clip();X.fillStyle='#181410';X.fillRect(x,y,w,h);
- if(s){const k=Math.max(w/s.img.width,h/s.img.height)*s.z,dw=s.img.width*k,dh=s.img.height*k;X.drawImage(s.img,x+(w-dw)/2+s.ox*(dw-w)/2,y+(h-dh)/2+s.oy*(dh-h)/2,dw,dh);
-  if($('bw').checked){X.globalCompositeOperation='saturation';X.fillStyle='#000';X.fillRect(x,y,w,h);X.globalCompositeOperation='source-over'}}
- else{star(x+w/2,y+h/2-(exp?0:14),Math.min(w,h)/9);if(!exp)T('Tap untuk tambah foto',x+w/2,y+h/2+52,'500 24px "DM Sans",sans-serif','#b9aa98')}
- X.restore();if(!o){X.lineWidth=2;X.strokeStyle='#2a2418';X.strokeRect(x,y,w,h)}if(!exp&&i==sel){X.lineWidth=8;X.strokeStyle=o?'#fff':O;X.strokeRect(x,y,w,h)}}
-function strip(off,exp){const o=lay=='orange',nm=$('nm').value.trim().slice(0,24),ws=($('ws').value.trim()||'Semoga tahun baru penuh tawa, rezeki, dan sushi!').slice(0,120),cx=off+SW/2;
- if(o)rr(off,SY,SW,SH,14);else tk(off,SY,SW,SH,26);X.fillStyle=o?O:C;X.fill();
- if(o){if(LC){const lh=62,lw=LC.width*lh/LC.height;X.drawImage(LC,cx-lw/2,SY+28,lw,lh)}
-  X.save();rr(off,SY,SW,SH,14);X.clip();const s=Array(7).fill('SOORA SUSHI CLUB').join('   •   ');[[off+34,-1],[off+SW-34,1]].forEach(([x,d])=>{X.save();X.translate(x,SY+SH/2);X.rotate(d*Math.PI/2);T(s,0,8,'700 24px "DM Sans",sans-serif','#1a1008');X.restore()});X.restore()}
- else{if(LG){const lh=64,lw=LG.width*lh/LG.height;X.drawImage(LG,cx-lw/2,SY+30,lw,lh)}
-  const d=new Date(),ds=d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),tm=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.');
-  X.strokeStyle='#2a2418';X.lineWidth=2;X.strokeRect(off+32,SY+120,476,84);X.beginPath();[232,372].forEach(v=>{X.moveTo(off+v,SY+120);X.lineTo(off+v,SY+204)});X.stroke();
-  [[132,'Tanggal · '+tm,ds],[302,'Outlet',$('ol').value||'-'],[440,'Tahun','2027']].forEach(([v,l,t])=>{T(l,off+v,SY+148,'500 15px "DM Sans",sans-serif','#7a6b58');T(t,off+v,SY+181,'700 21px "DM Sans",sans-serif','#2a2418')})}
- rects(off).forEach((r,i)=>cell(r,slots[i],i,exp,o));
- const fy=o?1476:1494,ink=o?'#1a1008':'#2a2418';T('HAPPY NEW YEAR 2027',cx,SY+fy,'700 34px Fredoka,sans-serif',ink);if(!o){star(off+46,SY+fy-12,13);star(off+SW-46,SY+fy-12,13)}
- X.font='italic 500 23px "DM Sans",sans-serif';wrap(ws,420).slice(0,2).forEach((t,i)=>T(t,cx,SY+fy+48+i*30,X.font,o?'#1a1008':'#4a3f33'));
- if(nm)T('— '+nm,cx,SY+1632,'700 34px Fredoka,sans-serif',o?'#fff':O)}
-function draw(exp){X.clearRect(0,0,W,H);X.fillStyle='#0a0a0a';X.fillRect(0,0,W,H);const g=X.createRadialGradient(W/2,-120,40,W/2,200,1100);g.addColorStop(0,'rgba(236,106,45,.30)');g.addColorStop(1,'rgba(236,106,45,0)');X.fillStyle=g;X.fillRect(0,0,W,H);
- offs().forEach(o=>strip(o,exp));if(OV)X.drawImage(OV,0,0,W,H)}
-function ui(){$('lay').innerHTML=Object.keys(LAY).map(k=>`<button class="${k==lay?'on':''}" onclick="setLay('${k}',1)">${LAY[k][0]}</button>`).join('');const s=slots[sel];$('zm').value=s?s.z:1;$('zm').disabled=!s;$('bRm').disabled=!s;$('st').textContent='Frame terpilih: '+(sel+1)+(s?'':' (kosong)')}
-function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
-const hit=(px,py)=>{for(const o of offs()){const i=rects(o).findIndex(r=>px>=r[0]&&px<=r[0]+r[2]&&py>=r[1]&&py<=r[1]+r[3]);if(i>=0)return i}return-1};
-cv.onpointerdown=e=>{const[px,py]=pos(e),i=hit(px,py);if(i<0)return;sel=i;const s=slots[i];dr={i,px,py,ox:s?s.ox:0,oy:s?s.oy:0,m:0};cv.setPointerCapture(e.pointerId);draw();ui()};
-cv.onpointermove=e=>{if(!dr)return;const s=slots[dr.i];if(!s)return;const[px,py]=pos(e),[,,w,h]=rects(0)[dr.i],k=Math.max(w/s.img.width,h/s.img.height)*s.z,ex=(s.img.width*k-w)/2,ey=(s.img.height*k-h)/2;dr.m=Math.max(dr.m,Math.hypot(px-dr.px,py-dr.py));if(ex>1)s.ox=Math.max(-1,Math.min(1,dr.ox+(px-dr.px)/ex));if(ey>1)s.oy=Math.max(-1,Math.min(1,dr.oy+(py-dr.py)/ey));draw()};
-cv.onpointerup=()=>{if(dr&&dr.m<10&&!slots[dr.i])pick();dr=null};
-const fi=$('fi'),pick=()=>{fi.value='';fi.click()};$('bAdd').onclick=pick;
-$('bRm').onclick=()=>{slots[sel]=null;draw();ui()};$('zm').oninput=e=>{if(slots[sel]){slots[sel].z=+e.target.value;draw()}};
-const loadF=f=>createImageBitmap(f).catch(()=>img(URL.createObjectURL(f))),put=async(f,j)=>{const b=await loadF(f);if(b)slots[j]={img:b,z:1,ox:0,oy:0}};
-fi.onchange=async()=>{const fs=[...fi.files];if(!fs.length)return;await put(fs[0],sel);let j=sel;for(const f of fs.slice(1)){let t=-1;for(let k=1;k<=slots.length;k++){const c=(j+k)%slots.length;if(!slots[c]){t=c;break}}if(t<0)break;await put(f,t);j=t}draw();ui()};
-['nm','ws'].forEach(i=>$(i).oninput=()=>draw());
-$('ch').innerHTML=WISH.map((w,i)=>`<button class="ch" onclick="$('ws').value=WISH[${i}];draw()">${w}</button>`).join('');
-async function png(){if(!slots.some(Boolean)){alert('Tambahkan minimal 1 foto dulu ya.');return null}draw(true);const b=await new Promise(r=>cv.toBlob(r,'image/png'));draw();saveWish();return b}
-const fname=()=>'soora-newyear-'+(($('nm').value.trim().replace(/[^\w]+/g,'-').toLowerCase())||'photobooth')+'.png';
-$('bDl').onclick=async()=>{const b=await png();if(!b)return;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();a.click()};
-$('bSh').onclick=async()=>{const b=await png();if(!b)return;const f=new File([b],fname(),{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:'Soora New Year 2027'}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();a.click()}};
-async function saveWish(){try{if(!$('op').checked)return;const nm=$('nm').value.trim(),ws=$('ws').value.trim();if(!nm&&!ws)return;const cfg=(await import('./firebase-config.js')).default;if(!cfg.apiKey||cfg.apiKey.startsWith('ISI'))return;
- const{initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),{getFirestore,addDoc,collection,serverTimestamp}=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
- await addDoc(collection(getFirestore(initializeApp(cfg)),'wishes'),{name:nm.slice(0,24),wish:ws.slice(0,120),layout:lay,outlet:$('ol').value,ts:serverTimestamp()})}catch(e){console.warn(e)}}
-(async()=>{setLay('ticket');await Promise.all([document.fonts.load('700 34px Fredoka'),document.fonts.load('italic 500 23px "DM Sans"')]).catch(()=>{});[LG,LC,OV]=await Promise.all([img('logos/soora.png'),img('logos/soora-cream.png'),img('assets/overlay.png')]);draw()})();
+// ---------- Konfigurasi ----------
+const W = 1200, H = 1800;                 // 4x6 inch canvas @300dpi
+const SH = 1500, Y0 = 40, GAP = 30;       // strip height, top offset, gap between strips
+const BASE_W = 471, BASE_H = 1417;        // base size of the frame files (hole coordinates are based on this)
+const K = SH / BASE_H;                    // strip scale relative to the frame file
+const ORANGE = '#EC6A2D';
+
+// Photo holes for each frame: [x, y, width, height] in BASE pixels (471x1417).
+// crop = left columns to drop (the cream frame has a 3px transparent edge on the left).
+// If the frame is replaced with a higher resolution version of the same ratio, these numbers still apply.
+const FRAMES = {
+  cream:  { label: 'Cream · 3 photos',  src: 'assets/frame-cream.png',  crop: 3, shape: 'rrect', r: 58, hl: ORANGE,
+            slots: [[47,139,382,317],[47,484,382,317],[47,829,382,317]] },
+  orange: { label: 'Orange · 3 photos', src: 'assets/frame-orange.png', crop: 0, shape: 'ellipse', r: 0, hl: '#FFFFFF',
+            slots: [[31,144,409,275],[31,458,409,275],[31,786,409,275]] }
+};
+const WISH = ['Here\'s to 2027 full of laughter and sushi!','More gatherings, more stories.','Health, happiness, and good fortune.','Cheers to new moments, new bites!'];
+const DEFAULT_WISH = 'May the new year be full of laughter, luck, and sushi!';
+
+// ---------- State ----------
+const $ = id => document.getElementById(id), cv = $('cv'), X = cv.getContext('2d');
+let lay = 'cream', slots = [null, null, null], sel = 0, FI = {}, drag = null;
+
+const loadImg = s => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = s; });
+const stripCount = () => $('cp').value === '1' ? 1 : 2;
+const stripW = () => (BASE_W - FRAMES[lay].crop) * K;
+function stripXs() {
+  const w = stripW();
+  return stripCount() === 1 ? [W / 2 - w / 2] : [W / 2 - GAP / 2 - w, W / 2 + GAP / 2];
+}
+// Rectangle of each photo hole (canvas coordinates) for the strip at x0
+function slotRects(x0) {
+  const f = FRAMES[lay];
+  return f.slots.map(([sx, sy, sw, sh]) => [x0 + (sx - f.crop) * K, Y0 + sy * K, sw * K, sh * K]);
+}
+
+// ---------- Drawing ----------
+function rr(x, y, w, h, r) {
+  X.beginPath(); X.moveTo(x + r, y); X.arcTo(x + w, y, x + w, y + h, r); X.arcTo(x + w, y + h, x, y + h, r);
+  X.arcTo(x, y + h, x, y, r); X.arcTo(x, y, x + w, y, r); X.closePath();
+}
+function holePath(r) {
+  const f = FRAMES[lay], [x, y, w, h] = r;
+  if (f.shape === 'ellipse') { X.beginPath(); X.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2); }
+  else rr(x, y, w, h, f.r * K);
+}
+function star(cx, cy, r) {
+  X.save(); X.strokeStyle = ORANGE; X.lineWidth = r / 4; X.lineCap = 'round';
+  for (let k = 0; k < 4; k++) {
+    const a = k * Math.PI / 4, dx = Math.cos(a) * r, dy = Math.sin(a) * r;
+    X.beginPath(); X.moveTo(cx - dx, cy - dy); X.lineTo(cx + dx, cy + dy); X.stroke();
+  }
+  X.restore();
+}
+function text(t, x, y, font, color) { X.font = font; X.fillStyle = color; X.textAlign = 'center'; X.fillText(t, x, y); }
+function wrap(t, maxW) {
+  const lines = []; let cur = '';
+  for (const s of t.split(/\s+/)) {
+    const n = cur ? cur + ' ' + s : s;
+    if (X.measureText(n).width > maxW && cur) { lines.push(cur); cur = s; } else cur = n;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+function drawCell(r, s, exp) {
+  const [x, y, w, h] = r;
+  X.save(); X.beginPath(); X.rect(x, y, w, h); X.clip();
+  if (s) {
+    const k = Math.max(w / s.img.width, h / s.img.height) * s.z, dw = s.img.width * k, dh = s.img.height * k;
+    X.drawImage(s.img, x + (w - dw) / 2 + s.ox * (dw - w) / 2, y + (h - dh) / 2 + s.oy * (dh - h) / 2, dw, dh);
+    if ($('bw').checked) {
+      X.globalCompositeOperation = 'saturation'; X.fillStyle = '#000'; X.fillRect(x, y, w, h);
+      X.globalCompositeOperation = 'source-over';
+    }
+  } else {
+    X.fillStyle = exp ? '#EFE8DC' : '#FFFFFF'; X.fillRect(x, y, w, h);
+    star(x + w / 2, y + h / 2 - (exp ? 0 : 14), Math.min(w, h) / 9);
+    if (!exp) text('Tap to take a photo', x + w / 2, y + h / 2 + 52, '500 24px "DM Sans",sans-serif', '#8f8272');
+  }
+  X.restore();
+}
+
+function drawCaption(cx, w) {
+  const nm = $('nm').value.trim().slice(0, 24), outlet = $('ol').value;
+  const ws = ($('ws').value.trim() || DEFAULT_WISH).slice(0, 120);
+  const top = Y0 + SH + 22;
+  let fs = 26, lines;
+  for (; fs >= 18; fs--) { X.font = 'italic 500 ' + fs + 'px "DM Sans",sans-serif'; lines = wrap(ws, w - 30); if (lines.length <= 4) break; }
+  const lh = Math.round(fs * 1.28); let y = top + fs;
+  lines.slice(0, 4).forEach(t => { text(t, cx, y, 'italic 500 ' + fs + 'px "DM Sans",sans-serif', '#4a3f33'); y += lh; });
+  y += 14;
+  if (nm) { text(nm, cx, y, '700 32px Fredoka,sans-serif', ORANGE); y += 30; }
+  if (outlet) text('Soora Sushi Club ' + outlet, cx, y, '500 19px "DM Sans",sans-serif', '#8f8272');
+}
+
+function draw(exp) {
+  const f = FRAMES[lay], fimg = FI[lay], w = stripW();
+  X.clearRect(0, 0, W, H); X.fillStyle = '#FFFDF7'; X.fillRect(0, 0, W, H);
+  stripXs().forEach(x0 => {
+    const rects = slotRects(x0);
+    rects.forEach((r, i) => drawCell(r, slots[i], exp));
+    if (fimg) {
+      const c = f.crop * fimg.width / BASE_W;
+      X.drawImage(fimg, c, 0, fimg.width - c, fimg.height, x0, Y0, w, SH);
+    }
+    if (!exp) {
+      X.save(); holePath(rects[sel]); X.lineWidth = 7; X.strokeStyle = f.hl; X.stroke(); X.restore();
+    }
+    drawCaption(x0 + w / 2, w);
+  });
+}
+
+// ---------- UI ----------
+function setLay(k) { lay = k; sel = Math.min(sel, 2); draw(); ui(); }
+function ui() {
+  $('lay').innerHTML = Object.keys(FRAMES).map(k => `<button class="${k === lay ? 'on' : ''}" onclick="setLay('${k}')">${FRAMES[k].label}</button>`).join('');
+  const s = slots[sel];
+  $('zm').value = s ? s.z : 1; $('zm').disabled = !s; $('bRm').disabled = !s;
+  $('st').textContent = 'Selected frame: ' + (sel + 1) + (s ? '' : ' (empty)');
+}
+function pos(e) { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; }
+function hit(px, py) {
+  for (const x0 of stripXs()) {
+    const i = slotRects(x0).findIndex(r => px >= r[0] && px <= r[0] + r[2] && py >= r[1] && py <= r[1] + r[3]);
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+cv.onpointerdown = e => {
+  const [px, py] = pos(e), i = hit(px, py); if (i < 0) return;
+  sel = i; const s = slots[i];
+  drag = { i, px, py, ox: s ? s.ox : 0, oy: s ? s.oy : 0, m: 0 };
+  cv.setPointerCapture(e.pointerId); draw(); ui();
+};
+cv.onpointermove = e => {
+  if (!drag) return; const s = slots[drag.i]; if (!s) return;
+  const [px, py] = pos(e), [, , w, h] = slotRects(0)[drag.i];
+  const k = Math.max(w / s.img.width, h / s.img.height) * s.z, ex = (s.img.width * k - w) / 2, ey = (s.img.height * k - h) / 2;
+  drag.m = Math.max(drag.m, Math.hypot(px - drag.px, py - drag.py));
+  if (ex > 1) s.ox = Math.max(-1, Math.min(1, drag.ox + (px - drag.px) / ex));
+  if (ey > 1) s.oy = Math.max(-1, Math.min(1, drag.oy + (py - drag.py) / ey));
+  draw();
+};
+cv.onpointerup = () => { if (drag && drag.m < 10 && !slots[drag.i]) (camOK ? openCam([drag.i]) : pickFile()); drag = null; };
+
+const fi = $('fi'), pickFile = () => { fi.value = ''; fi.click(); };
+$('bAdd').onclick = pickFile;
+$('bCam').onclick = () => camOK ? openCam([0, 1, 2]) : pickFile();
+$('bRe').onclick = () => camOK ? openCam([sel]) : pickFile();
+$('bRm').onclick = () => { slots[sel] = null; draw(); ui(); };
+$('zm').oninput = e => { if (slots[sel]) { slots[sel].z = +e.target.value; draw(); } };
+const loadFile = f => createImageBitmap(f).catch(() => loadImg(URL.createObjectURL(f)));
+const put = async (f, j) => { const b = await loadFile(f); if (b) slots[j] = { img: b, z: 1, ox: 0, oy: 0 }; };
+fi.onchange = async () => {
+  const fs = [...fi.files]; if (!fs.length) return;
+  await put(fs[0], sel); let j = sel;
+  for (const f of fs.slice(1)) {
+    let t = -1;
+    for (let k = 1; k <= slots.length; k++) { const c = (j + k) % slots.length; if (!slots[c]) { t = c; break; } }
+    if (t < 0) break; await put(f, t); j = t;
+  }
+  draw(); ui();
+};
+['nm', 'ws'].forEach(i => $(i).oninput = () => draw());
+$('ch').innerHTML = WISH.map((w, i) => `<button class="ch" onclick="$('ws').value=WISH[${i}];draw()">${w}</button>`).join('');
+
+// ---------- Camera (photobooth) ----------
+const camOK = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+const vid = $('vid'), sleep = ms => new Promise(r => setTimeout(r, ms));
+let stream = null, facing = 'user', mirror = true, camTargets = [], sess = 0;
+
+function stopStream() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } vid.srcObject = null; }
+function applyMirror() { vid.classList.toggle('mir', mirror); $('cMir').textContent = 'Mirror: ' + (mirror ? 'on' : 'off'); }
+function camMsg(t) { $('cmsg').textContent = t; }
+
+async function startStream() {
+  stopStream(); $('cGo').disabled = true; camMsg('Opening camera...');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    vid.srcObject = stream; await vid.play().catch(() => {});
+    mirror = facing === 'user'; applyMirror();
+    camMsg(camTargets.length > 1 ? 'Ready? Press Start and the camera will take ' + camTargets.length + ' photos automatically.' : 'Get in position, then press Take photo.');
+    $('cGo').disabled = false;
+  } catch (e) {
+    camMsg('Cannot access the camera. Allow camera access in your browser, or close this and use Upload. If you opened this link inside Instagram or WhatsApp, open it in Chrome or Safari instead.');
+  }
+}
+
+function openCam(targets) {
+  camTargets = targets; sess++;
+  const [, , w, h] = slotRects(0)[0];
+  $('cvw').style.setProperty('--ar', (w / h).toFixed(3));
+  $('cvw').className = FRAMES[lay].shape === 'ellipse' ? 'ell' : 'rrect';
+  $('ctitle').textContent = targets.length > 1 ? 'Camera session' : 'Photo for frame ' + (targets[0] + 1);
+  $('cGo').textContent = targets.length > 1 ? 'Start session (' + targets.length + ' photos)' : 'Take photo';
+  $('cnt').textContent = ''; $('cam').hidden = false; document.body.style.overflow = 'hidden';
+  startStream();
+}
+function closeCam() { sess++; stopStream(); $('cam').hidden = true; document.body.style.overflow = ''; $('cGo').disabled = false; }
+
+function snap() {
+  const vw = vid.videoWidth, vh = vid.videoHeight; if (!vw || !vh) return null;
+  const sc = Math.min(1, 1920 / Math.max(vw, vh)), c = document.createElement('canvas');
+  c.width = Math.round(vw * sc); c.height = Math.round(vh * sc);
+  const g = c.getContext('2d');
+  if (mirror) { g.translate(c.width, 0); g.scale(-1, 1); }
+  g.drawImage(vid, 0, 0, c.width, c.height);
+  return c;
+}
+
+async function runSession() {
+  const my = ++sess, n = camTargets.length; $('cGo').disabled = true;
+  for (let i = 0; i < n; i++) {
+    if (n > 1) camMsg('Photo ' + (i + 1) + ' of ' + n); else camMsg('Get ready...');
+    for (let c = 3; c >= 1; c--) { $('cnt').textContent = c; await sleep(1000); if (my !== sess) return; }
+    $('cnt').textContent = '';
+    const img = snap();
+    if (img) { slots[camTargets[i]] = { img, z: 1, ox: 0, oy: 0 }; sel = camTargets[i]; draw(); ui(); }
+    $('flash').style.transition = 'none'; $('flash').style.opacity = 1; await sleep(60);
+    $('flash').style.transition = 'opacity .4s'; $('flash').style.opacity = 0;
+    await sleep(800); if (my !== sess) return;
+  }
+  camMsg('Done!'); await sleep(600); if (my === sess) closeCam();
+}
+$('cGo').onclick = runSession;
+$('cClose').onclick = closeCam;
+$('cMir').onclick = () => { mirror = !mirror; applyMirror(); };
+$('cFlip').onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; startStream(); };
+window.addEventListener('pagehide', stopStream);
+
+// ---------- Export ----------
+async function png() {
+  if (!slots.some(Boolean)) { alert('Please add at least 1 photo first.'); return null; }
+  draw(true);
+  const b = await new Promise(r => cv.toBlob(r, 'image/png'));
+  draw(); saveWish(); return b;
+}
+const fname = () => 'soora-newyear-' + (($('nm').value.trim().replace(/[^\w]+/g, '-').toLowerCase()) || 'photobooth') + '.png';
+$('bDl').onclick = async () => {
+  const b = await png(); if (!b) return;
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(); a.click();
+};
+$('bSh').onclick = async () => {
+  const b = await png(); if (!b) return;
+  const f = new File([b], fname(), { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [f] })) navigator.share({ files: [f], title: 'Soora New Year 2027' }).catch(() => {});
+  else { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = fname(); a.click(); }
+};
+
+// ---------- Save wish (optional, requires consent checkbox) ----------
+async function saveWish() {
+  try {
+    if (!$('op').checked) return;
+    const nm = $('nm').value.trim(), ws = $('ws').value.trim(); if (!nm && !ws) return;
+    const cfg = (await import('./firebase-config.js')).default;
+    if (!cfg.apiKey || cfg.apiKey.startsWith('ISI')) return;
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+    const { getFirestore, addDoc, collection, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+    await addDoc(collection(getFirestore(initializeApp(cfg)), 'wishes'),
+      { name: nm.slice(0, 24), wish: ws.slice(0, 120), layout: lay, outlet: $('ol').value, ts: serverTimestamp() });
+  } catch (e) { console.warn(e); }
+}
+
+// ---------- Start ----------
+(async () => {
+  setLay('cream');
+  await Promise.all([document.fonts.load('700 32px Fredoka'), document.fonts.load('italic 500 26px "DM Sans"')]).catch(() => {});
+  const [c, o] = await Promise.all([loadImg(FRAMES.cream.src), loadImg(FRAMES.orange.src)]);
+  FI = { cream: c, orange: o };
+  draw();
+})();
 </script></body></html>
