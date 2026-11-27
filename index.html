@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soora New Year Photobox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>:root{--o:#EC6A2D;--c:#F6EBDD;--bg:#0a0a0a;--sf:#17140f;--ln:#2c2620}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--c);font:15px/1.45 'DM Sans',system-ui,sans-serif}.w{max-width:480px;margin:0 auto;padding:18px 16px 40px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}header img{height:42px}
+h1{font:700 28px/1.1 Fredoka,sans-serif;margin:6px 0 4px}h1 b{color:var(--o)}p{margin:4px 0;color:#cdbfae}
+canvas{width:100%;height:auto;border-radius:14px;border:1px solid var(--ln);touch-action:none;display:block;margin-top:12px}
+.card{background:var(--sf);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-top:14px}.card h2{font:600 17px Fredoka,sans-serif;margin:0 0 8px}
+label{display:block;font-size:12px;color:#b9aa98;margin:10px 0 4px}input,textarea,select{width:100%;background:#0f0d0a;color:var(--c);border:1px solid var(--ln);border-radius:10px;padding:10px;font:inherit}
+input[type=range]{padding:0;accent-color:var(--o)}input[type=checkbox]{width:auto;margin-right:8px}
+button{font:600 15px Fredoka,sans-serif;border:0;border-radius:12px;padding:12px 16px;cursor:pointer;background:#2a241c;color:var(--c)}button.p{background:var(--o);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.lay button.on{background:var(--c);color:#111}
+.ch{font:500 12px 'DM Sans',sans-serif;padding:6px 10px;border-radius:99px;background:#241e16;border:1px solid var(--ln);flex:0 0 auto}small,.mu{color:#8f8272;font-size:12px}</style></head><body><div class="w">
+<header><img src="logos/soora-cream.png" alt="Soora Sushi Club"></header>
+<h1>Happy New Year <b>2027</b></h1><p>Bikin strip photobooth tahun barumu bareng Soora. Fotomu tidak diunggah ke server, semuanya diproses di perangkatmu.</p>
+<canvas id="cv" width="1200" height="1800"></canvas><p class="mu">Ketuk kotak untuk menambah foto. Geser foto untuk mengatur posisi.</p>
+<div class="card"><h2>1. Pilih gaya strip</h2><div class="row lay" id="lay"></div><div class="row" style="margin-top:10px;align-items:center"><select id="cp" onchange="draw()"><option value="2">2 lembar (siap cetak 4×6)</option><option value="1">1 lembar</option></select><label style="display:flex;align-items:center;margin:0;color:var(--c);font-size:14px"><input type="checkbox" id="bw" onchange="draw()">Hitam-putih</label></div></div>
+<div class="card"><h2>2. Foto</h2><div class="row"><button class="p" id="bAdd">📷 Tambah / ganti foto</button><button id="bRm">Hapus foto</button></div>
+<label>Zoom foto terpilih</label><input type="range" id="zm" min="1" max="3" step="0.05" value="1"><small id="st"></small><input type="file" id="fi" accept="image/*" multiple hidden></div>
+<div class="card"><h2>3. Wish &amp; nama</h2><label>Nama</label><input id="nm" maxlength="24" placeholder="Namamu">
+<label>Wish tahun baru</label><textarea id="ws" rows="3" maxlength="120" placeholder="Semoga tahun baru penuh tawa, rezeki, dan sushi!"></textarea><div class="row" id="ch" style="margin-top:8px"></div>
+<label>Outlet (opsional)</label><select id="ol" onchange="draw()"><option value="">-</option><option>Fujiyama</option><option>Tugu</option><option>Bekasi</option><option>Surabaya</option></select>
+<label style="display:flex;align-items:flex-start;margin-top:12px"><input type="checkbox" id="op">Izinkan Soora menyimpan nama &amp; wish-ku untuk campaign (foto tidak ikut disimpan).</label></div>
+<div class="row" style="margin-top:14px"><button class="p" id="bDl">⬇ Download PNG</button><button id="bSh">Bagikan</button></div></div>
+<script>
+const W=1200,H=1800,O='#EC6A2D',C='#F6EBDD',$=id=>document.getElementById(id),cv=$('cv'),X=cv.getContext('2d');
+const LAY={ticket:['Ticket · 4 foto',4],orange:['Orange · 3 foto',3]},WISH=['Semoga 2027 penuh tawa dan sushi!','Makin sering kumpul, makin banyak cerita.','Sehat, bahagia, rezeki lancar.','Cheers to new moments, new bites!'];
+let lay='ticket',slots=[],sel=0,LG=null,LC=null,OV=null,dr=null;const SY=60,SW=540,SH=1680;
+const img=s=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s}),offs=()=>$('cp').value=='1'?[330]:[40,620];
+function rects(off){const o=lay=='orange',n=LAY[lay][1],pw=o?428:476,ph=o?420:290;return[...Array(n)].map((_,i)=>[off+(o?56:32),SY+(o?120:232)+i*(ph+16),pw,ph])}
+function setLay(k,u){lay=k;const n=LAY[k][1];slots.length=n;for(let i=0;i<n;i++)slots[i]=slots[i]||null;sel=Math.min(sel,n-1);if(u)$('bw').checked=k=='orange';draw();ui()}
+function star(cx,cy,r){X.save();X.strokeStyle=O;X.lineWidth=r/4;X.lineCap='round';for(let k=0;k<4;k++){const a=k*Math.PI/4,dx=Math.cos(a)*r,dy=Math.sin(a)*r;X.beginPath();X.moveTo(cx-dx,cy-dy);X.lineTo(cx+dx,cy+dy);X.stroke()}X.restore()}
+function rr(x,y,w,h,r){X.beginPath();X.moveTo(x+r,y);X.arcTo(x+w,y,x+w,y+h,r);X.arcTo(x+w,y+h,x,y+h,r);X.arcTo(x,y+h,x,y,r);X.arcTo(x,y,x+w,y,r);X.closePath()}
+function tk(x,y,w,h,r){const P=Math.PI;X.beginPath();X.moveTo(x+r,y);X.lineTo(x+w-r,y);X.arc(x+w,y,r,P,P/2,true);X.lineTo(x+w,y+h-r);X.arc(x+w,y+h,r,-P/2,P,true);X.lineTo(x+r,y+h);X.arc(x,y+h,r,0,-P/2,true);X.lineTo(x,y+r);X.arc(x,y,r,P/2,0,true);X.closePath()}
+const T=(t,x,y,f,c)=>{X.font=f;X.fillStyle=c;X.textAlign='center';X.fillText(t,x,y)};
+function wrap(t,mw){const l=[];let c='';for(const s of t.split(/\s+/)){const n=c?c+' '+s:s;if(X.measureText(n).width>mw&&c){l.push(c);c=s}else c=n}if(c)l.push(c);return l}
+function cell(r,s,i,exp,o){const[x,y,w,h]=r;X.save();X.beginPath();X.rect(x,y,w,h);X.clip();X.fillStyle='#181410';X.fillRect(x,y,w,h);
+ if(s){const k=Math.max(w/s.img.width,h/s.img.height)*s.z,dw=s.img.width*k,dh=s.img.height*k;X.drawImage(s.img,x+(w-dw)/2+s.ox*(dw-w)/2,y+(h-dh)/2+s.oy*(dh-h)/2,dw,dh);
+  if($('bw').checked){X.globalCompositeOperation='saturation';X.fillStyle='#000';X.fillRect(x,y,w,h);X.globalCompositeOperation='source-over'}}
+ else{star(x+w/2,y+h/2-(exp?0:14),Math.min(w,h)/9);if(!exp)T('Tap untuk tambah foto',x+w/2,y+h/2+52,'500 24px "DM Sans",sans-serif','#b9aa98')}
+ X.restore();if(!o){X.lineWidth=2;X.strokeStyle='#2a2418';X.strokeRect(x,y,w,h)}if(!exp&&i==sel){X.lineWidth=8;X.strokeStyle=o?'#fff':O;X.strokeRect(x,y,w,h)}}
+function strip(off,exp){const o=lay=='orange',nm=$('nm').value.trim().slice(0,24),ws=($('ws').value.trim()||'Semoga tahun baru penuh tawa, rezeki, dan sushi!').slice(0,120),cx=off+SW/2;
+ if(o)rr(off,SY,SW,SH,14);else tk(off,SY,SW,SH,26);X.fillStyle=o?O:C;X.fill();
+ if(o){if(LC){const lh=62,lw=LC.width*lh/LC.height;X.drawImage(LC,cx-lw/2,SY+28,lw,lh)}
+  X.save();rr(off,SY,SW,SH,14);X.clip();const s=Array(7).fill('SOORA SUSHI CLUB').join('   •   ');[[off+34,-1],[off+SW-34,1]].forEach(([x,d])=>{X.save();X.translate(x,SY+SH/2);X.rotate(d*Math.PI/2);T(s,0,8,'700 24px "DM Sans",sans-serif','#1a1008');X.restore()});X.restore()}
+ else{if(LG){const lh=64,lw=LG.width*lh/LG.height;X.drawImage(LG,cx-lw/2,SY+30,lw,lh)}
+  const d=new Date(),ds=d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}),tm=d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}).replace(':','.');
+  X.strokeStyle='#2a2418';X.lineWidth=2;X.strokeRect(off+32,SY+120,476,84);X.beginPath();[232,372].forEach(v=>{X.moveTo(off+v,SY+120);X.lineTo(off+v,SY+204)});X.stroke();
+  [[132,'Tanggal · '+tm,ds],[302,'Outlet',$('ol').value||'-'],[440,'Tahun','2027']].forEach(([v,l,t])=>{T(l,off+v,SY+148,'500 15px "DM Sans",sans-serif','#7a6b58');T(t,off+v,SY+181,'700 21px "DM Sans",sans-serif','#2a2418')})}
+ rects(off).forEach((r,i)=>cell(r,slots[i],i,exp,o));
+ const fy=o?1476:1494,ink=o?'#1a1008':'#2a2418';T('HAPPY NEW YEAR 2027',cx,SY+fy,'700 34px Fredoka,sans-serif',ink);if(!o){star(off+46,SY+fy-12,13);star(off+SW-46,SY+fy-12,13)}
+ X.font='italic 500 23px "DM Sans",sans-serif';wrap(ws,420).slice(0,2).forEach((t,i)=>T(t,cx,SY+fy+48+i*30,X.font,o?'#1a1008':'#4a3f33'));
+ if(nm)T('— '+nm,cx,SY+1632,'700 34px Fredoka,sans-serif',o?'#fff':O)}
+function draw(exp){X.clearRect(0,0,W,H);X.fillStyle='#0a0a0a';X.fillRect(0,0,W,H);const g=X.createRadialGradient(W/2,-120,40,W/2,200,1100);g.addColorStop(0,'rgba(236,106,45,.30)');g.addColorStop(1,'rgba(236,106,45,0)');X.fillStyle=g;X.fillRect(0,0,W,H);
+ offs().forEach(o=>strip(o,exp));if(OV)X.drawImage(OV,0,0,W,H)}
+function ui(){$('lay').innerHTML=Object.keys(LAY).map(k=>`<button class="${k==lay?'on':''}" onclick="setLay('${k}',1)">${LAY[k][0]}</button>`).join('');const s=slots[sel];$('zm').value=s?s.z:1;$('zm').disabled=!s;$('bRm').disabled=!s;$('st').textContent='Frame terpilih: '+(sel+1)+(s?'':' (kosong)')}
+function pos(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*W/r.width,(e.clientY-r.top)*H/r.height]}
+const hit=(px,py)=>{for(const o of offs()){const i=rects(o).findIndex(r=>px>=r[0]&&px<=r[0]+r[2]&&py>=r[1]&&py<=r[1]+r[3]);if(i>=0)return i}return-1};
+cv.onpointerdown=e=>{const[px,py]=pos(e),i=hit(px,py);if(i<0)return;sel=i;const s=slots[i];dr={i,px,py,ox:s?s.ox:0,oy:s?s.oy:0,m:0};cv.setPointerCapture(e.pointerId);draw();ui()};
+cv.onpointermove=e=>{if(!dr)return;const s=slots[dr.i];if(!s)return;const[px,py]=pos(e),[,,w,h]=rects(0)[dr.i],k=Math.max(w/s.img.width,h/s.img.height)*s.z,ex=(s.img.width*k-w)/2,ey=(s.img.height*k-h)/2;dr.m=Math.max(dr.m,Math.hypot(px-dr.px,py-dr.py));if(ex>1)s.ox=Math.max(-1,Math.min(1,dr.ox+(px-dr.px)/ex));if(ey>1)s.oy=Math.max(-1,Math.min(1,dr.oy+(py-dr.py)/ey));draw()};
+cv.onpointerup=()=>{if(dr&&dr.m<10&&!slots[dr.i])pick();dr=null};
+const fi=$('fi'),pick=()=>{fi.value='';fi.click()};$('bAdd').onclick=pick;
+$('bRm').onclick=()=>{slots[sel]=null;draw();ui()};$('zm').oninput=e=>{if(slots[sel]){slots[sel].z=+e.target.value;draw()}};
+const loadF=f=>createImageBitmap(f).catch(()=>img(URL.createObjectURL(f))),put=async(f,j)=>{const b=await loadF(f);if(b)slots[j]={img:b,z:1,ox:0,oy:0}};
+fi.onchange=async()=>{const fs=[...fi.files];if(!fs.length)return;await put(fs[0],sel);let j=sel;for(const f of fs.slice(1)){let t=-1;for(let k=1;k<=slots.length;k++){const c=(j+k)%slots.length;if(!slots[c]){t=c;break}}if(t<0)break;await put(f,t);j=t}draw();ui()};
+['nm','ws'].forEach(i=>$(i).oninput=()=>draw());
+$('ch').innerHTML=WISH.map((w,i)=>`<button class="ch" onclick="$('ws').value=WISH[${i}];draw()">${w}</button>`).join('');
+async function png(){if(!slots.some(Boolean)){alert('Tambahkan minimal 1 foto dulu ya.');return null}draw(true);const b=await new Promise(r=>cv.toBlob(r,'image/png'));draw();saveWish();return b}
+const fname=()=>'soora-newyear-'+(($('nm').value.trim().replace(/[^\w]+/g,'-').toLowerCase())||'photobooth')+'.png';
+$('bDl').onclick=async()=>{const b=await png();if(!b)return;const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();a.click()};
+$('bSh').onclick=async()=>{const b=await png();if(!b)return;const f=new File([b],fname(),{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:'Soora New Year 2027'}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname();a.click()}};
+async function saveWish(){try{if(!$('op').checked)return;const nm=$('nm').value.trim(),ws=$('ws').value.trim();if(!nm&&!ws)return;const cfg=(await import('./firebase-config.js')).default;if(!cfg.apiKey||cfg.apiKey.startsWith('ISI'))return;
+ const{initializeApp}=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),{getFirestore,addDoc,collection,serverTimestamp}=await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+ await addDoc(collection(getFirestore(initializeApp(cfg)),'wishes'),{name:nm.slice(0,24),wish:ws.slice(0,120),layout:lay,outlet:$('ol').value,ts:serverTimestamp()})}catch(e){console.warn(e)}}
+(async()=>{setLay('ticket');await Promise.all([document.fonts.load('700 34px Fredoka'),document.fonts.load('italic 500 23px "DM Sans"')]).catch(()=>{});[LG,LC,OV]=await Promise.all([img('logos/soora.png'),img('logos/soora-cream.png'),img('assets/overlay.png')]);draw()})();
+</script></body></html>
