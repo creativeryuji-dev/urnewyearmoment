@@ -46,6 +46,8 @@ const SH = 1500, Y0 = 40, GAP = 30;       // strip height, top offset, gap betwe
 const BASE_W = 471, BASE_H = 1417;        // base size of the frame files (hole coordinates are based on this)
 const K = SH / BASE_H;                    // strip scale relative to the frame file
 const ORANGE = '#EC6A2D';
+const SHEET_BG = '#414128';   // brand olive (same as the dark band in the frame)
+const CAP_TEXT = '#FFEBB9', CAP_MUTED = '#C9B98F';
 
 // Photo holes for each frame: [x, y, width, height] in BASE pixels (471x1417).
 // crop = left columns to drop (the cream frame has a 3px transparent edge on the left).
@@ -130,15 +132,15 @@ function drawCaption(cx, w) {
   let fs = 26, lines;
   for (; fs >= 18; fs--) { X.font = 'italic 500 ' + fs + 'px "DM Sans",sans-serif'; lines = wrap(ws, w - 30); if (lines.length <= 4) break; }
   const lh = Math.round(fs * 1.28); let y = top + fs;
-  lines.slice(0, 4).forEach(t => { text(t, cx, y, 'italic 500 ' + fs + 'px "DM Sans",sans-serif', '#4a3f33'); y += lh; });
+  lines.slice(0, 4).forEach(t => { text(t, cx, y, 'italic 500 ' + fs + 'px "DM Sans",sans-serif', CAP_TEXT); y += lh; });
   y += 14;
   if (nm) { text(nm, cx, y, '700 32px Fredoka,sans-serif', ORANGE); y += 30; }
-  if (outlet) text('Soora Sushi Club ' + outlet, cx, y, '500 19px "DM Sans",sans-serif', '#8f8272');
+  if (outlet) text('Soora Sushi Club ' + outlet, cx, y, '500 19px "DM Sans",sans-serif', CAP_MUTED);
 }
 
 function draw(exp) {
   const f = FRAMES[lay], fimg = FI[lay], w = stripW();
-  X.clearRect(0, 0, W, H); X.fillStyle = '#FFFDF7'; X.fillRect(0, 0, W, H);
+  X.clearRect(0, 0, W, H); X.fillStyle = SHEET_BG; X.fillRect(0, 0, W, H);
   stripXs().forEach(x0 => {
     const rects = slotRects(x0);
     rects.forEach((r, i) => drawCell(r, slots[i], exp));
